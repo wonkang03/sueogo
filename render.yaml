@@ -3,7 +3,7 @@ services:
     name: sueogo
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build:index && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm run start
     autoDeploy: true
     envVars:
@@ -11,6 +11,16 @@ services:
         value: 22.22.2
       - key: ALLOWED_ORIGIN
         value: "*"
+      - key: NAS_URL
+        sync: false
+      - key: NAS_USER
+        sync: false
+      - key: NAS_PASS
+        sync: false
+      - key: NAS_VIDEO_BASE_PATH
+        value: /video/Signlanguage
+      - key: NAS_ALLOW_SELF_SIGNED
+        value: "false"
       - key: KLI_API_KEY_RAW
         sync: false
       - key: KLI_API_KEY_ANNOTATED
