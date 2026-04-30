@@ -169,7 +169,7 @@
               </button>
               <div>
                 <p class="section-label">상세페이지</p>
-                <h2>사회적 편견을 뛰어넘어<br />소통의 벽이 허물어지는 날까지</h2>
+                <h2>사회적 편견을 뛰어넘어 소통의 벽이 허물어지는 날까지</h2>
               </div>
             </div>
             <div class="status-chip" :class="translationStatusTone">{{ translationStatusText }}</div>
@@ -204,11 +204,6 @@
                 <p class="helper-text">
                   국립국어원 말뭉치 API연계 데이터 기반으로 수어를 재생합니다.
                 </p>
-              </div>
-
-              <div class="translation-input-highlight">
-                <strong>여기에 채팅을 입력하세요</strong>
-                <span>입력한 문장에 맞는 수어 영상을 바로 찾아 연결합니다.</span>
               </div>
 
               <div class="translation-chat-log clean-chat-log">
@@ -305,6 +300,7 @@
 import { computed, nextTick, ref } from 'vue';
 import axios from 'axios';
 import { resolveSearchResultVideo, searchCorpusByInput } from './corpusData';
+import { moderateInput } from './inputModeration';
 
 const API_BASE_URL = '/api/sign-video';
 
@@ -668,6 +664,21 @@ const handleTranslationVideoLoaded = () => {
   });
 };
 
+const resetTranslationSearchState = () => {
+  translationResults.value = [];
+  annotateResults.value = [];
+  parallelResults.value = [];
+  translationSuggestions.value = [];
+  selectedResult.value = null;
+  selectedResultKey.value = '';
+};
+
+const rejectBlockedInput = () => {
+  resetTranslationSearchState();
+  translationStatus.value = 'error';
+  translationStatusMessage.value = '자기소개 금지';
+};
+
 const searchSignVideos = async () => {
   if (isTranslationInputLocked.value) return;
 
@@ -675,17 +686,32 @@ const searchSignVideos = async () => {
   if (!rawInput) {
     translationStatus.value = 'error';
     translationStatusMessage.value = '검색할 한글 문장을 먼저 입력해 주세요.';
-    translationResults.value = [];
-    annotateResults.value = [];
-    parallelResults.value = [];
-    translationSuggestions.value = [];
-    selectedResult.value = null;
-    selectedResultKey.value = '';
+    resetTranslationSearchState();
+    return;
+  }
+
+  const localModeration = moderateInput(rawInput);
+  if (localModeration.blocked) {
+    rejectBlockedInput();
     return;
   }
 
   translationStatus.value = 'searching';
   translationStatusMessage.value = `수어 번역 영상을 찾는 중입니다.`;
+
+  try {
+    await axios.get(`${API_BASE_URL}/moderate`, {
+      params: { text: rawInput },
+    });
+  } catch (error) {
+    if (error?.response?.status === 400) {
+      rejectBlockedInput();
+      return;
+    }
+    translationStatus.value = 'error';
+    translationStatusMessage.value = '입력 검증 중 문제가 발생했습니다.';
+    return;
+  }
 
   // 사용자가 입력한 원문은 UI에 그대로 유지하고, 검색 엔진 내부에서만 정규화합니다.
   const result = await searchCorpusByInput(rawInput);
@@ -695,8 +721,7 @@ const searchSignVideos = async () => {
   translationSuggestions.value = result.suggestions || [];
 
   if (!result.matches.length) {
-    selectedResult.value = null;
-    selectedResultKey.value = '';
+    resetTranslationSearchState();
     translationStatus.value = 'error';
     translationStatusMessage.value = `수어 기준으로 연결 가능한 영상을 찾지 못했습니다. 추천 결과를 확인해 주세요.`;
     translationHistory.value.unshift({
@@ -1509,28 +1534,6 @@ button {
   margin: 8px 0 8px;
 }
 
-.translation-input-highlight {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(79, 179, 165, 0.16), rgba(255, 170, 122, 0.14));
-  border: 1px solid rgba(79, 179, 165, 0.26);
-  box-shadow: 0 12px 28px rgba(79, 179, 165, 0.12);
-}
-
-.translation-input-highlight strong {
-  color: #244743;
-  font-size: 1rem;
-}
-
-.translation-input-highlight span {
-  color: #58706b;
-  font-size: 0.93rem;
-  line-height: 1.45;
-}
-
 .clean-chat-log {
   min-height: 420px;
   max-height: 560px;
@@ -1597,13 +1600,13 @@ button {
   min-height: 60px;
   border-radius: 20px;
   background: #ffffff;
-  border: 2px solid rgba(79, 179, 165, 0.28);
-  box-shadow: 0 0 0 4px rgba(79, 179, 165, 0.08);
+  border: 2px solid rgba(79, 179, 165, 0.42);
+  box-shadow: 0 0 0 6px rgba(79, 179, 165, 0.12), 0 12px 26px rgba(79, 179, 165, 0.12);
 }
 
 .clean-input-wrap .translation-input:focus {
-  border-color: rgba(79, 179, 165, 0.74);
-  box-shadow: 0 0 0 6px rgba(79, 179, 165, 0.14);
+  border-color: rgba(79, 179, 165, 0.86);
+  box-shadow: 0 0 0 7px rgba(79, 179, 165, 0.18), 0 14px 30px rgba(79, 179, 165, 0.16);
 }
 
 .clean-input-wrap .translate-search-button {
@@ -1734,12 +1737,9 @@ button {
   }
 
   .page-header h2 {
-    font-size: 1.15rem;
-    line-height: 1.4;
-  }
-
-  .translation-input-highlight {
-    padding: 12px 14px;
+    font-size: 1.02rem;
+    line-height: 1.5;
+    word-break: keep-all;
   }
 
   .clean-chat-log {

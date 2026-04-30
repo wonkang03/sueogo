@@ -6,6 +6,7 @@ import { URL } from 'node:url';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { createClient } from 'webdav';
+import { moderateInput } from './src/inputModeration.js';
 
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 dotenv.config({ path: path.join(process.cwd(), '.env.local'), override: true });
@@ -381,6 +382,13 @@ const server = http.createServer(async (req, res) => {
   }
 
   const url = new URL(req.url, `http://${req.headers.host || `${HOST}:${PORT}`}`);
+
+  if (req.method === 'GET' && url.pathname === '/api/sign-video/moderate') {
+    const text = url.searchParams.get('text') || '';
+    const moderation = moderateInput(text);
+    sendJson(res, moderation.blocked ? 400 : 200, moderation);
+    return;
+  }
 
   if (req.method === 'GET' && url.pathname === '/api/sign-video/index') {
     if (!fs.existsSync(INDEX_PATH)) return sendJson(res, 404, { error: '인덱스 파일이 없습니다.' });
