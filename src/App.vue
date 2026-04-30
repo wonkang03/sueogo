@@ -160,16 +160,16 @@
 
         <section v-else-if="currentPage === 'sign-translate'" key="sign-translate" class="page translate-page sign-translate-clean-page">
           <header class="page-header glass-card">
-            <div class="header-left">
+            <div class="header-left sign-translate-header-left">
               <button class="icon-button back-button" @click="goToPage('main')" aria-label="메인으로 돌아가기">
                 <svg viewBox="0 0 24 24" fill="none">
                   <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
                 <span>뒤로</span>
               </button>
-              <div>
-                <p class="section-label">상세페이지</p>
-                <h2>사회적 편견을 뛰어넘어 소통의 벽이 허물어지는 날까지</h2>
+              <div class="sign-translate-title-wrap">
+                <p class="section-label sign-translate-section-label">상세페이지</p>
+                <h2 class="sign-translate-page-title">사회적 편견을 뛰어넘어 소통의 벽이 허물어지는 날까지</h2>
               </div>
             </div>
             <div class="status-chip" :class="translationStatusTone">{{ translationStatusText }}</div>
@@ -1179,6 +1179,38 @@ button {
   color: #b54a4a;
 }
 
+.sign-translate-header-left {
+  align-items: center;
+  gap: 18px;
+}
+
+.sign-translate-title-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sign-translate-section-label {
+  color: rgba(34, 108, 100, 0.72);
+  letter-spacing: 0.16em;
+}
+
+.sign-translate-page-title {
+  margin: 0;
+  color: #23514c;
+  font-size: 1.28rem;
+  line-height: 1.45;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  background: linear-gradient(135deg, #1f645d 0%, #2aa99a 52%, #ff9a64 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -1740,6 +1772,16 @@ button {
     font-size: 1.02rem;
     line-height: 1.5;
     word-break: keep-all;
+  }
+
+  .sign-translate-header-left {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .sign-translate-page-title {
+    font-size: 1.02rem;
+    line-height: 1.55;
   }
 
   .clean-chat-log {
