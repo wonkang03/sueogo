@@ -222,6 +222,20 @@
                 </template>
               </div>
 
+              <div class="translation-input-wrap clean-input-wrap">
+                <div class="translation-input-field-wrap">
+                  <input
+                    v-model="translationInput"
+                    type="text"
+                    class="translation-input"
+                    :disabled="isTranslationInputLocked"
+                    :placeholder="isTranslationInputLocked ? '영상 재생이 끝날 때까지 입력할 수 없습니다' : '예: 안녕하세요, 학교에 갔어요, 병원 어디예요'"
+                    @keydown.enter="searchSignVideos"
+                  />
+                </div>
+                <button class="primary-button translate-search-button" :disabled="isTranslationInputLocked" @click="searchSignVideos">전송</button>
+              </div>
+
               <div v-if="translationSuggestions.length" class="suggestion-wrap clean-suggestion-wrap">
                 <p class="analysis-label">유사 문장 추천</p>
                 <div class="suggestion-list">
@@ -235,20 +249,6 @@
                     {{ item.text }}
                   </button>
                 </div>
-              </div>
-
-              <div class="translation-input-wrap clean-input-wrap">
-                <div class="translation-input-field-wrap">
-                  <input
-                    v-model="translationInput"
-                    type="text"
-                    class="translation-input"
-                    :disabled="isTranslationInputLocked"
-                    :placeholder="isTranslationInputLocked ? '영상 재생이 끝날 때까지 입력할 수 없습니다' : '예: 안녕하세요, 학교에 갔어요, 병원 어디예요'"
-                    @keydown.enter="searchSignVideos"
-                  />
-                </div>
-                <button class="primary-button translate-search-button" :disabled="isTranslationInputLocked" @click="searchSignVideos">전송</button>
               </div>
             </section>
           </section>
