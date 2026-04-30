@@ -8,7 +8,7 @@
         <section v-if="currentPage === 'main'" key="main" class="page main-page">
           <section class="main-hero-wrap glass-card">
             <div class="hero-panel hero-panel-soft">
-              <img :src="mainImage" alt="수어Go 메인 이미지" class="hero-image" />
+              <img src="/mainimage.jpg" alt="수어Go 메인 이미지" class="hero-image" />
             </div>
           </section>
 
@@ -297,7 +297,6 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue';
 import axios from 'axios';
-import mainImage from './assets/images/mainimage.jpg';
 import { resolveSearchResultVideo, searchCorpusByInput } from './corpusData';
 
 const API_BASE_URL = '/api/sign-video';
