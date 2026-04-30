@@ -187,7 +187,8 @@
 
               <div class="video-stage clean-video-stage">
                 <div v-if="selectedResult && selectedResult.videoUrl" class="translation-player-wrap">
-                  <video ref="translationVideoRef" :src="selectedResult.videoUrl" controls class="sign-video" @loadedmetadata="handleTranslationVideoLoaded" @play="handleTranslationPlaybackPlay" @pause="handleTranslationPlaybackPause" @ended="handleTranslationPlaybackEnded" @waiting="handleTranslationPlaybackWaiting"></video>
+                  <video ref="translationVideoRef" :src="selectedResult.videoUrl" controls preload="auto" playsinline class="sign-video" @loadedmetadata="handleTranslationVideoLoaded" @play="handleTranslationPlaybackPlay" @pause="handleTranslationPlaybackPause" @ended="handleTranslationPlaybackEnded" @waiting="handleTranslationPlaybackWaiting"></video>
+                  <video ref="nextTranslationVideoRef" muted preload="auto" playsinline class="preload-video"></video>
                 </div>
                 <div v-else class="video-placeholder clean-video-placeholder">
                   <div class="placeholder-icon">🎬</div>
@@ -341,11 +342,13 @@ const selectedResultKey = ref('');
 const translationStatus = ref('idle');
 const translationStatusMessage = ref('한글 문장을 입력하면 수어 번역 영상을 재생합니다.');
 const translationVideoRef = ref(null);
+const nextTranslationVideoRef = ref(null);
 const isTranslationPlaybackPending = ref(false);
 const isTranslationPlaybackActive = ref(false);
 const TRANSLATION_PLAYBACK_RATE = 0.8;
 const SEGMENT_START_PADDING_MS = 120;
 const SEGMENT_END_PADDING_MS = 450;
+const MIN_SEGMENT_DURATION_MS = 1400;
 let activeTimeUpdateHandler = null;
 let activePlaybackSegments = [];
 let activePlaybackIndex = 0;
@@ -455,6 +458,7 @@ const clearTranslationSelection = () => {
     video.load();
   }
 
+  clearPreloadedSegment();
   isTranslationPlaybackPending.value = false;
   isTranslationPlaybackActive.value = false;
   activePlaybackSegments = [];
@@ -517,6 +521,28 @@ const tokenizeMeaning = (value = '') => Array.from(new Set(
     .filter((token) => token.length >= 2)
 ));
 
+const getSegmentVideoUrl = (segment = {}, fallbackUrl = '') => segment.videoUrl || fallbackUrl || '';
+
+const preloadUpcomingSegment = (segment = null, fallbackUrl = '') => {
+  const preloadVideo = nextTranslationVideoRef.value;
+  const nextUrl = getSegmentVideoUrl(segment, fallbackUrl);
+  if (!preloadVideo || !nextUrl) return;
+
+  if (preloadVideo.dataset.preloadedSrc === nextUrl) return;
+  preloadVideo.dataset.preloadedSrc = nextUrl;
+  preloadVideo.src = nextUrl;
+  preloadVideo.load();
+};
+
+const clearPreloadedSegment = () => {
+  const preloadVideo = nextTranslationVideoRef.value;
+  if (!preloadVideo) return;
+  preloadVideo.pause();
+  preloadVideo.removeAttribute('src');
+  preloadVideo.dataset.preloadedSrc = '';
+  preloadVideo.load();
+};
+
 const buildTranslationSummary = (query, searchResult, result) => {
   const base = '수어고 매칭';
   if (!query || !result?.text) return `${base}(단어 ${query || ''})`;
@@ -558,11 +584,15 @@ const selectTranslationResult = async (item) => {
         end: resolvedItem.end,
         tokens: resolvedItem.matchedTokens || [],
         glosses: resolvedItem.glosses || [],
-      }]).map((segment) => ({
-        ...segment,
-        start: Math.max(0, (segment.start || 0) - SEGMENT_START_PADDING_MS),
-        end: Math.max((segment.start || 0), (segment.end || 0) + SEGMENT_END_PADDING_MS),
-      }));
+      }]).map((segment) => {
+        const paddedStart = Math.max(0, (segment.start || 0) - SEGMENT_START_PADDING_MS);
+        const paddedEnd = Math.max((segment.start || 0), (segment.end || 0) + SEGMENT_END_PADDING_MS);
+        return {
+          ...segment,
+          start: paddedStart,
+          end: Math.max(paddedEnd, paddedStart + MIN_SEGMENT_DURATION_MS),
+        };
+      });
   activePlaybackIndex = 0;
 
   const firstSegment = activePlaybackSegments[0] || {};
@@ -573,6 +603,7 @@ const selectTranslationResult = async (item) => {
     end: firstSegment.end ?? resolvedItem.end,
   };
   selectedResultKey.value = `${resolvedItem.corpus}-${resolvedItem.folderId}-${resolvedItem.start}-${resolvedItem.signerId}-${Date.now()}`;
+  preloadUpcomingSegment(activePlaybackSegments[1], selectedResult.value.videoUrl);
   translationStatus.value = 'success';
   translationStatusMessage.value = resolvedItem.summary || `총 ${activePlaybackSegments.length}개 구간을 0.8배속으로 순서대로 재생합니다.`;
 };
@@ -625,6 +656,7 @@ const handleTranslationVideoLoaded = () => {
       const nextIndex = activePlaybackIndex + 1;
       const nextSegment = activePlaybackSegments[nextIndex];
       if (!nextSegment) {
+        clearPreloadedSegment();
         isTranslationPlaybackPending.value = false;
         isTranslationPlaybackActive.value = false;
         return;
@@ -635,20 +667,25 @@ const handleTranslationVideoLoaded = () => {
       activePlaybackIndex = nextIndex;
       translationStatusMessage.value = `구간 ${nextIndex + 1}/${activePlaybackSegments.length} 재생 중 (0.8x)`;
 
-      if ((nextSegment.videoUrl || '') === (currentSegment.videoUrl || item.videoUrl || '')) {
+      const currentVideoUrl = getSegmentVideoUrl(currentSegment, item.videoUrl);
+      const nextVideoUrl = getSegmentVideoUrl(nextSegment, item.videoUrl);
+
+      if (nextVideoUrl === currentVideoUrl) {
         selectedResult.value = {
           ...selectedResult.value,
           start: nextSegment.start,
           end: nextSegment.end,
         };
         video.currentTime = Math.max(0, (nextSegment.start || 0) / 1000);
+        preloadUpcomingSegment(activePlaybackSegments[nextIndex + 1], nextVideoUrl);
         handleTranslationVideoLoaded();
         return;
       }
 
+      preloadUpcomingSegment(activePlaybackSegments[nextIndex + 1], nextVideoUrl);
       selectedResult.value = {
         ...selectedResult.value,
-        videoUrl: nextSegment.videoUrl,
+        videoUrl: nextVideoUrl,
         start: nextSegment.start,
         end: nextSegment.end,
       };
@@ -1564,6 +1601,14 @@ button {
   min-height: 620px;
   border-radius: 28px;
   background: radial-gradient(circle at top, rgba(42, 169, 154, 0.12), transparent 30%), #f7fbf9;
+}
+
+.preload-video {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .clean-video-placeholder {
