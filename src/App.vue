@@ -551,23 +551,39 @@ const clearPreloadedSegment = () => {
   preloadVideo.load();
 };
 
+const buildGlossMatchSummary = (result) => {
+  const matched = Array.isArray(result?.matchedTokens) ? result.matchedTokens.filter(Boolean) : [];
+  const missing = Array.isArray(result?.missingTokens) ? result.missingTokens.filter(Boolean) : [];
+
+  const parts = [];
+  parts.push(`수어고 매칭(단어: ${matched.length ? matched.join(', ') : '없음'})`);
+  if (missing.length) {
+    parts.push(`수어고 없는 단어(단어: ${missing.join(', ')})`);
+  }
+  return parts.join(' / ');
+};
+
 const buildTranslationSummary = (query, searchResult, result) => {
   const base = '수어고 매칭';
-  if (!query || !result?.text) return `${base}(단어 ${query || ''})`;
+  if (result?.resultType === 'gloss-sequence') {
+    return buildGlossMatchSummary(result);
+  }
+
+  if (!query || !result?.text) return `${base}(단어: ${query || ''})`;
 
   if (result.usedQuestionFallback) {
-    return `${base}(유사문장 ${result.text})`;
+    return `${base}(유사문장: ${result.text})`;
   }
 
   if (result.resultType === 'parallel_koreanText_exact' || searchResult?.matchType === 'koreanText-exact') {
-    return `${base}(문장 ${query})`;
+    return `${base}(문장: ${query})`;
   }
 
   if (result.text && result.text !== query) {
-    return `${base}(유사문장 ${result.text})`;
+    return `${base}(유사문장: ${result.text})`;
   }
 
-  return `${base}(문장 ${query})`;
+  return `${base}(문장: ${query})`;
 };
 
 const selectTranslationResult = async (item) => {
@@ -793,9 +809,7 @@ const searchSignVideos = async () => {
   }
 
   showNoSuggestionMessage.value = false;
-  const summary = result.matches[0]?.resultType === 'gloss-sequence'
-    ? `수어고 매칭(단어 ${result.matches[0].matchedTokens?.join(', ')}${result.matches[0].missingTokens?.length ? ` / 누락 ${result.matches[0].missingTokens.join(', ')}` : ''})`
-    : buildTranslationSummary(rawInput, result, result.matches[0]);
+  const summary = buildTranslationSummary(rawInput, result, result.matches[0]);
   translationHistory.value.unshift({
     query: rawInput,
     summary,
