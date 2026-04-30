@@ -245,7 +245,7 @@
                     :key="`${item.source}-${item.text}`"
                     class="suggestion-chip"
                     :disabled="isTranslationInputLocked"
-                    @click="translationInput = item.text; searchSignVideos()"
+                    @click="handleSuggestionSelect(item)"
                   >
                     {{ item.text }}
                   </button>
@@ -709,12 +709,14 @@ const handleTranslationVideoLoaded = () => {
   });
 };
 
-const resetTranslationSearchState = () => {
+const resetTranslationSearchState = ({ keepSuggestions = false } = {}) => {
   translationResults.value = [];
   annotateResults.value = [];
   parallelResults.value = [];
-  translationSuggestions.value = [];
-  showNoSuggestionMessage.value = false;
+  if (!keepSuggestions) {
+    translationSuggestions.value = [];
+    showNoSuggestionMessage.value = false;
+  }
   selectedResult.value = null;
   selectedResultKey.value = '';
 };
@@ -723,6 +725,14 @@ const rejectBlockedInput = () => {
   resetTranslationSearchState();
   translationStatus.value = 'error';
   translationStatusMessage.value = '자기소개 금지';
+};
+
+const handleSuggestionSelect = async (item) => {
+  if (!item?.text || isTranslationInputLocked.value) return;
+  translationInput.value = item.text;
+  showNoSuggestionMessage.value = false;
+  await nextTick();
+  await searchSignVideos();
 };
 
 const searchSignVideos = async () => {
@@ -768,13 +778,13 @@ const searchSignVideos = async () => {
   showNoSuggestionMessage.value = false;
 
   if (!result.matches.length) {
-    resetTranslationSearchState();
+    resetTranslationSearchState({ keepSuggestions: true });
     translationStatus.value = 'error';
     translationStatusMessage.value = `수어 기준으로 연결 가능한 영상을 찾지 못했습니다. 추천 결과를 확인해 주세요.`;
     showNoSuggestionMessage.value = translationSuggestions.value.length === 0;
     translationHistory.value.unshift({
       query: rawInput,
-      summary: `유사문장 추천을 확인해 주세요.`,
+      summary: translationSuggestions.value.length ? '유사문장 추천을 확인해 주세요.' : '유사 추천 문장이 없습니다.',
       topResult: null,
     });
     translationHistory.value = translationHistory.value.slice(0, 8);
@@ -783,17 +793,17 @@ const searchSignVideos = async () => {
   }
 
   showNoSuggestionMessage.value = false;
-  await selectTranslationResult(result.matches[0]);
   const summary = result.matches[0]?.resultType === 'gloss-sequence'
     ? `수어고 매칭(단어 ${result.matches[0].matchedTokens?.join(', ')}${result.matches[0].missingTokens?.length ? ` / 누락 ${result.matches[0].missingTokens.join(', ')}` : ''})`
     : buildTranslationSummary(rawInput, result, result.matches[0]);
-  translationStatusMessage.value = summary;
   translationHistory.value.unshift({
     query: rawInput,
     summary,
     topResult: result.matches[0],
   });
   translationHistory.value = translationHistory.value.slice(0, 8);
+  await selectTranslationResult(result.matches[0]);
+  translationStatusMessage.value = summary;
   translationInput.value = '';
 };
 
