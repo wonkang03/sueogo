@@ -251,6 +251,10 @@
                   </button>
                 </div>
               </div>
+              <div v-else-if="showNoSuggestionMessage" class="suggestion-wrap clean-suggestion-wrap empty-suggestion-wrap">
+                <p class="analysis-label">유사 문장 추천</p>
+                <p class="empty-suggestion-message">유사 추천 문장이 없습니다.</p>
+              </div>
             </section>
           </section>
         </section>
@@ -337,6 +341,7 @@ const annotateResults = ref([]);
 const parallelResults = ref([]);
 const translationHistory = ref([]);
 const translationSuggestions = ref([]);
+const showNoSuggestionMessage = ref(false);
 const selectedResult = ref(null);
 const selectedResultKey = ref('');
 const translationStatus = ref('idle');
@@ -432,6 +437,9 @@ const isTranslationInputLocked = computed(() => (
 ));
 
 const goToPage = (page) => {
+  if (currentPage.value === 'sign-translate' && page !== 'sign-translate') {
+    clearTranslationSelection();
+  }
   currentPage.value = page;
 };
 
@@ -706,6 +714,7 @@ const resetTranslationSearchState = () => {
   annotateResults.value = [];
   parallelResults.value = [];
   translationSuggestions.value = [];
+  showNoSuggestionMessage.value = false;
   selectedResult.value = null;
   selectedResultKey.value = '';
 };
@@ -755,12 +764,14 @@ const searchSignVideos = async () => {
   translationResults.value = result.matches;
   annotateResults.value = result.annotateMatches;
   parallelResults.value = result.parallelMatches;
-  translationSuggestions.value = result.suggestions || [];
+  translationSuggestions.value = (result.suggestions || []).slice(0, 3);
+  showNoSuggestionMessage.value = false;
 
   if (!result.matches.length) {
     resetTranslationSearchState();
     translationStatus.value = 'error';
     translationStatusMessage.value = `수어 기준으로 연결 가능한 영상을 찾지 못했습니다. 추천 결과를 확인해 주세요.`;
+    showNoSuggestionMessage.value = translationSuggestions.value.length === 0;
     translationHistory.value.unshift({
       query: rawInput,
       summary: `유사문장 추천을 확인해 주세요.`,
@@ -771,6 +782,7 @@ const searchSignVideos = async () => {
     return;
   }
 
+  showNoSuggestionMessage.value = false;
   await selectTranslationResult(result.matches[0]);
   const summary = result.matches[0]?.resultType === 'gloss-sequence'
     ? `수어고 매칭(단어 ${result.matches[0].matchedTokens?.join(', ')}${result.matches[0].missingTokens?.length ? ` / 누락 ${result.matches[0].missingTokens.join(', ')}` : ''})`
@@ -1679,6 +1691,17 @@ button {
   border-radius: 20px;
   background: rgba(248, 252, 251, 0.92);
   border: 1px solid rgba(61, 124, 115, 0.08);
+}
+
+.empty-suggestion-wrap {
+  text-align: left;
+}
+
+.empty-suggestion-message {
+  margin: 8px 0 0;
+  color: #6b7d79;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .clean-input-wrap {
