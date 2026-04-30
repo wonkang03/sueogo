@@ -192,7 +192,7 @@
                 <div v-else class="video-placeholder clean-video-placeholder">
                   <div class="placeholder-icon">🎬</div>
                   <strong>{{ translationPlaceholderTitle }}</strong>
-                  <p>{{ translationStatusMessage }}</p>
+                  <p :class="{ 'blocked-message': translationStatusMessage === '자기소개 금지' }">{{ translationStatusMessage }}</p>
                 </div>
               </div>
             </section>
@@ -1188,6 +1188,8 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
+  text-align: left;
   gap: 6px;
   min-width: 0;
 }
@@ -1195,6 +1197,7 @@ button {
 .sign-translate-section-label {
   color: rgba(34, 108, 100, 0.72);
   letter-spacing: 0.16em;
+  text-align: left;
 }
 
 .sign-translate-page-title {
@@ -1260,13 +1263,22 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   text-align: center;
   padding: 32px;
 }
 
 .placeholder-icon {
+  display: block;
   font-size: 3rem;
-  margin-bottom: 12px;
+  line-height: 1;
+  margin: 0;
+}
+
+.video-placeholder strong {
+  display: block;
+  margin: 0;
+  line-height: 1.45;
 }
 
 .video-placeholder p,
@@ -1277,6 +1289,14 @@ button {
 .empty-result-box p {
   color: #5b716d;
   line-height: 1.7;
+}
+
+.video-placeholder p.blocked-message {
+  color: #d93025;
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
 }
 
 .download-panel,
@@ -1548,6 +1568,7 @@ button {
 
 .clean-video-placeholder {
   padding: 40px;
+  gap: 12px;
 }
 
 .sign-chat-card {
