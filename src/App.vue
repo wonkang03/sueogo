@@ -168,8 +168,8 @@
                 <span>뒤로</span>
               </button>
               <div>
-                <p class="section-label">DETAIL PAGE 02</p>
-                <h2>수어번역</h2>
+                <p class="section-label">상세페이지</p>
+                <h2>사회적 편견을 뛰어넘어<br />소통의 벽이 허물어지는 날까지</h2>
               </div>
             </div>
             <div class="status-chip" :class="translationStatusTone">{{ translationStatusText }}</div>
@@ -206,6 +206,11 @@
                 </p>
               </div>
 
+              <div class="translation-input-highlight">
+                <strong>여기에 채팅을 입력하세요</strong>
+                <span>입력한 문장에 맞는 수어 영상을 바로 찾아 연결합니다.</span>
+              </div>
+
               <div class="translation-chat-log clean-chat-log">
                 <div v-if="translationHistory.length === 0" class="empty-chat-state">
                   <div class="placeholder-icon">💬</div>
@@ -238,14 +243,16 @@
               </div>
 
               <div class="translation-input-wrap clean-input-wrap">
-                <input
-                  v-model="translationInput"
-                  type="text"
-                  class="translation-input"
-                  :disabled="isTranslationInputLocked"
-                  :placeholder="isTranslationInputLocked ? '영상 재생이 끝날 때까지 입력할 수 없습니다' : '문장을 입력하세요'"
-                  @keydown.enter="searchSignVideos"
-                />
+                <div class="translation-input-field-wrap">
+                  <input
+                    v-model="translationInput"
+                    type="text"
+                    class="translation-input"
+                    :disabled="isTranslationInputLocked"
+                    :placeholder="isTranslationInputLocked ? '영상 재생이 끝날 때까지 입력할 수 없습니다' : '예: 안녕하세요, 학교에 갔어요, 병원 어디예요'"
+                    @keydown.enter="searchSignVideos"
+                  />
+                </div>
                 <button class="primary-button translate-search-button" :disabled="isTranslationInputLocked" @click="searchSignVideos">전송</button>
               </div>
             </section>
@@ -1419,13 +1426,19 @@ button {
 }
 
 .translation-input-wrap {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   margin-top: 16px;
+  align-items: stretch;
+}
+
+.translation-input-field-wrap {
+  min-width: 0;
 }
 
 .translation-input {
-  flex: 1;
+  width: 100%;
   min-height: 56px;
   border-radius: 18px;
   border: 1px solid rgba(61, 124, 115, 0.14);
@@ -1440,7 +1453,8 @@ button {
 }
 
 .translate-search-button {
-  min-width: 140px;
+  min-width: 108px;
+  white-space: nowrap;
 }
 
 .analysis-label {
@@ -1493,6 +1507,28 @@ button {
 
 .sign-chat-header h3 {
   margin: 8px 0 8px;
+}
+
+.translation-input-highlight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(79, 179, 165, 0.16), rgba(255, 170, 122, 0.14));
+  border: 1px solid rgba(79, 179, 165, 0.26);
+  box-shadow: 0 12px 28px rgba(79, 179, 165, 0.12);
+}
+
+.translation-input-highlight strong {
+  color: #244743;
+  font-size: 1rem;
+}
+
+.translation-input-highlight span {
+  color: #58706b;
+  font-size: 0.93rem;
+  line-height: 1.45;
 }
 
 .clean-chat-log {
@@ -1548,18 +1584,26 @@ button {
   margin-top: auto;
   padding: 14px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(61, 124, 115, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(61, 124, 115, 0.14);
   position: sticky;
   bottom: 0;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 18px 36px rgba(38, 71, 67, 0.08);
 }
 
 .clean-input-wrap .translation-input {
   min-height: 60px;
   border-radius: 20px;
   background: #ffffff;
+  border: 2px solid rgba(79, 179, 165, 0.28);
+  box-shadow: 0 0 0 4px rgba(79, 179, 165, 0.08);
+}
+
+.clean-input-wrap .translation-input:focus {
+  border-color: rgba(79, 179, 165, 0.74);
+  box-shadow: 0 0 0 6px rgba(79, 179, 165, 0.14);
 }
 
 .clean-input-wrap .translate-search-button {
@@ -1667,7 +1711,7 @@ button {
   }
 
   .translation-input-wrap {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .page-header {
@@ -1692,6 +1736,10 @@ button {
   .page-header h2 {
     font-size: 1.15rem;
     line-height: 1.4;
+  }
+
+  .translation-input-highlight {
+    padding: 12px 14px;
   }
 
   .clean-chat-log {
