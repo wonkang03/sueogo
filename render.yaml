@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: sueogo
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:index && npm run build
+    startCommand: npm run start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.2
+      - key: ALLOWED_ORIGIN
+        value: "*"
+      - key: KLI_API_KEY_RAW
+        sync: false
+      - key: KLI_API_KEY_ANNOTATED
+        sync: false
+      - key: KLI_API_KEY_PARALLEL
+        sync: false
+      - key: KLI_API_KEY_RAW_2024
+        sync: false
+      - key: KLI_API_KEY_ANNOTATED_2024
+        sync: false
+      - key: KLI_API_KEY_PARALLEL_KO_KSL_2022
+        sync: false
+      - key: KLI_API_KEY_PARALLEL_KO_KSL_2023
+        sync: false
+      - key: KLI_API_KEY_PARALLEL_KO_KSL_2024
+        sync: false
+      - key: KLI_API_KEY_PARALLEL_KSL_KO_2024
+        sync: false

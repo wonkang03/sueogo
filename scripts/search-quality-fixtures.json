@@ -1,0 +1,42 @@
+[
+  {
+    "query": "안녕하세요",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["안녕하세요", "안녕하세요?", "반갑"]
+  },
+  {
+    "query": "감사합니다",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["감사"]
+  },
+  {
+    "query": "학교에 갔어요",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["학교"]
+  },
+  {
+    "query": "오늘 날씨 어때요",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["날씨"]
+  },
+  {
+    "query": "사과는 맛있나요",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["사과", "맛있"]
+  },
+  {
+    "query": "병원 어디예요",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["병원", "어디"]
+  },
+  {
+    "query": "햄버거가 먹고싶어요",
+    "expectedType": "parallel_only",
+    "mustIncludeAny": ["먹", "배고프", "맛있", "음식"]
+  },
+  {
+    "query": "지금은 새벽이에요 1시25분",
+    "expectedType": "none",
+    "mustIncludeAny": []
+  }
+]
