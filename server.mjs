@@ -22,16 +22,23 @@ const INDEX_PATH = path.join(SRC_ROOT, 'generated', 'corpusIndex.generated.json'
 const DIST_INDEX_PATH = path.join(DIST_ROOT, 'index.html');
 const DEFAULT_NAS_VIDEO_BASE_PATH = '/';
 
+function resolveApiKey(envName, fallbackKey, deprecatedKeys = []) {
+  const value = (process.env[envName] || '').trim();
+  if (!value) return fallbackKey;
+  if (deprecatedKeys.includes(value)) return fallbackKey;
+  return value;
+}
+
 const CORPUS_KEYS = {
-  raw: { label: 'raw-corpus', key: process.env.KLI_API_KEY_RAW || 'cKdKsyicESJPWSqXDCKcBvmrpyHlZyWz' },
-  annotated: { label: 'annotated-corpus', key: process.env.KLI_API_KEY_ANNOTATED || 'TMtdXOvMwSrSnZNwHoVCHUiPPmpwQnXz' },
-  parallel: { label: 'parallel-corpus', key: process.env.KLI_API_KEY_PARALLEL || 'HujeosvaSwljptcqnKjKiVAPEpkfoNPK' },
-  raw2024: { label: 'raw-corpus-2024', key: process.env.KLI_API_KEY_RAW_2024 || 'tTeSFEwvGicNwXrQTHKJUvHOQjsMgRmP' },
-  annotated2024: { label: 'annotated-corpus-2024', key: process.env.KLI_API_KEY_ANNOTATED_2024 || 'lEYkppYshsRpWAqMyEEgPhDqMIsxizGR' },
-  parallelKoKsl2022: { label: 'parallel-ko-ksl-2022', key: process.env.KLI_API_KEY_PARALLEL_KO_KSL_2022 || 'cresPedbeGxPsnVjGdsNYiOMuusEMEJg' },
-  parallelKoKsl2023: { label: 'parallel-ko-ksl-2023', key: process.env.KLI_API_KEY_PARALLEL_KO_KSL_2023 || 'bdaSZQLXOpCCIkrCLdjcZtRVLzZGTpYg' },
-  parallelKoKsl2024: { label: 'parallel-ko-ksl-2024', key: process.env.KLI_API_KEY_PARALLEL_KO_KSL_2024 || 'TtZZOHXtSSWNVBfPJJSgGaaHTJdgPuOw' },
-  parallelKslKo2024: { label: 'parallel-ksl-ko-2024', key: process.env.KLI_API_KEY_PARALLEL_KSL_KO_2024 || 'NTkwZHOggEHdQcfbSeyKFsHVFmgxrcZj' },
+  raw: { label: 'raw-corpus', key: resolveApiKey('KLI_API_KEY_RAW', 'cKdKsyicESJPWSqXDCKcBvmrpyHlZyWz') },
+  annotated: { label: 'annotated-corpus', key: resolveApiKey('KLI_API_KEY_ANNOTATED', 'TMtdXOvMwSrSnZNwHoVCHUiPPmpwQnXz') },
+  parallel: { label: 'parallel-corpus', key: resolveApiKey('KLI_API_KEY_PARALLEL', 'HujeosvaSwljptcqnKjKiVAPEpkfoNPK') },
+  raw2024: { label: 'raw-corpus-2024', key: resolveApiKey('KLI_API_KEY_RAW_2024', 'sIWwKoJKXyIdvsDzxDTrcSGEHHCGjFOK', ['tTeSFEwvGicNwXrQTHKJUvHOQjsMgRmP']) },
+  annotated2024: { label: 'annotated-corpus-2024', key: resolveApiKey('KLI_API_KEY_ANNOTATED_2024', 'uilhKozhoMINVifxIWkpEKzVmrsCWOnm', ['lEYkppYshsRpWAqMyEEgPhDqMIsxizGR']) },
+  parallelKoKsl2022: { label: 'parallel-ko-ksl-2022', key: resolveApiKey('KLI_API_KEY_PARALLEL_KO_KSL_2022', 'VleRJWCowfsmeWMDBILUcAajIMopszkJ', ['cresPedbeGxPsnVjGdsNYiOMuusEMEJg']) },
+  parallelKoKsl2023: { label: 'parallel-ko-ksl-2023', key: resolveApiKey('KLI_API_KEY_PARALLEL_KO_KSL_2023', 'gcgzERhXtkoMvKdKOtXheaHFoekkQynV', ['bdaSZQLXOpCCIkrCLdjcZtRVLzZGTpYg']) },
+  parallelKoKsl2024: { label: 'parallel-ko-ksl-2024', key: resolveApiKey('KLI_API_KEY_PARALLEL_KO_KSL_2024', 'GomyWgbNRePcLGwffLDHyzJstIVpVomI', ['TtZZOHXtSSWNVBfPJJSgGaaHTJdgPuOw']) },
+  parallelKslKo2024: { label: 'parallel-ksl-ko-2024', key: resolveApiKey('KLI_API_KEY_PARALLEL_KSL_KO_2024', 'jHxyDjiaowCrzDWOHIOJATlMEDSpacjD', ['NTkwZHOggEHdQcfbSeyKFsHVFmgxrcZj']) },
 };
 
 function parseBoolean(value, fallback = false) {
